@@ -1,1 +1,1 @@
-# FalloutStatusTracker
+# Fallout Character Status Tracker

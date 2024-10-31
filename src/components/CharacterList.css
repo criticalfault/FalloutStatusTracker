@@ -1,0 +1,9 @@
+.form-switch{
+    display: inline-block;
+}
+.ControlPanel{
+    width:250px;
+}
+.saveButton, .loadButton{
+    margin:5px;
+}
