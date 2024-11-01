@@ -1,0 +1,41 @@
+{
+    "hunger":{
+        "track":[1,4,8,16,24],
+        "cost":[0,0,1,1],
+        "state":{
+            "full":"You’re full if you’ve eaten your fill. You can’t eat any more food while full. ",
+            "sated":"You’re sated if you’ve eaten recently but you’ve still got room for a bit more.",
+            "hungry":"You’re hungry if your stomach is growling and you’re starting to feel a bit weak.",
+            "peckish":"You’re peckish if you’re ready for your next meal",
+            "starving":"You’re starving if everything reminds you of food and you’re feeling weak and tired"
+        },
+        "effect":{
+            "full":"After an hour of being full, you become sated.",
+            "sated":"After eight hours of being peckish, you become hungry.",
+            "hungry":"After sixteen hours of being hungry, you gain 1 Fatigue and become starving.",
+            "peckish":"After sixteen hours of being hungry, you gain 1 Fatigue and become starving.",
+            "starving":"For every day you are starving, you gain 1 Fatigue."
+        }
+        
+    },
+    "thirst":{
+        "track":[1,2,8],
+        "cost":[0,1,1],
+        "effect":{
+            "quenched":"After an hour of being quenched, you become hydrated.",
+            "hydrated":"After two hours of being sated, you become thirsty.",
+            "thirsty":"After four hours of being thirsty, you gain 1 Fatigue and become dehydrated.",
+            "dehydrated":"Every eight hours you spend dehydrated, gain 1 Fatigue."
+        }
+    },
+    "sleep":{
+        "track":[8,8,8,4],
+        "cost":[1,1,1],
+        "effect":{
+            "rested":"After eight hours rested, you become tired.",
+            "tired":"After eight hours tired, you gain 1 Fatigue and become weary.",
+            "weary":"After eight hours weary, you gain 1 Fatigue and become exhausted.",
+            "exhausted":"Every four hours exhausted, you gain 1 Fatigue."
+        }
+    }
+}
