@@ -2,19 +2,19 @@
     "hunger":{
         "track":[1,4,8,16,24],
         "cost":[0,0,1,1],
-        "names":["full","sated","hungry","peckish","starving"],
+        "names":["full","sated","peckish","hungry","starving"],
         "state":{
             "full":"You're full if you've eaten your fill. You can't eat any more food while full. ",
             "sated":"You're sated if you've eaten recently but you've still got room for a bit more.",
-            "hungry":"You're hungry if your stomach is growling and you're starting to feel a bit weak.",
             "peckish":"You're peckish if you're ready for your next meal",
+            "hungry":"You're hungry if your stomach is growling and you're starting to feel a bit weak.",
             "starving":"You're starving if everything reminds you of food and you're feeling weak and tired"
         },
         "effect":{
             "full":"After an hour of being full, you become sated.",
-            "sated":"After eight hours of being peckish, you become hungry.",
+            "sated":"After four hours of being sated, you become peckish.",
+            "peckish":"After eight hours of being peckish, you become hungry.",
             "hungry":"After sixteen hours of being hungry, you gain 1 Fatigue and become starving.",
-            "peckish":"After sixteen hours of being hungry, you gain 1 Fatigue and become starving.",
             "starving":"For every day you are starving, you gain 1 Fatigue."
         }
         
