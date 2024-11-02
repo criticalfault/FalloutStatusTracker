@@ -1,47 +1,119 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, InputGroup, Card, Form, Button, Col, Row, Modal } from 'react-bootstrap';
 import './CharacterList.css';
 import ButtonConfirm from './ButtonConfirm';
 import SurvivalData from '../data/survivalData.json'
-console.log(SurvivalData);
+
 let nextId = 0;
 
 export default function CharacterList() {
   const initialList = [
-                      {"name":"Dean","fatigue":0,"hunger":0,"thirst":0,"sleep":0},
-                      {"name":"Jon","fatigue":0,"hunger":0,"thirst":0,"sleep":0},
-                      {"name":"Adam","fatigue":0,"hunger":0,"thirst":0,"sleep":0},
-                      {"name":"Marty","fatigue":0,"hunger":0,"thirst":0,"sleep":0}
-                    ];
+                        {"name":"Dean", "fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  },
+                        {"name":"Jon",  "fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  },
+                        {"name":"Adam", "fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  },
+                        {"name":"Marty","fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  }
+                      ]; 
   const [CharacterList, setCharacterList] = useState(initialList);
   const [showModal, setShowModal] = useState(false)
-  const [timeToPass, setTimeToPass] = useState(null);
-  const [timeState, setTimeState]= useState([]);
-  const handleChangeTime = (selectedOption) => {
-    setTimeToPass(selectedOption);
+  const [totalHours, setTotalHours] = useState(0); // Track total time elapsed
+  const [hoursToPass, setHoursToPass] = useState(1);
+  const [isVisible, setIsVisible] = useState(true);
+
+
+  const resetHunger = (index) => {
+    let tempCharacters = [...CharacterList];
+    tempCharacters[index].hunger = 0;
+    tempCharacters[index].reset_hunger = totalHours;
+    setCharacterList(tempCharacters);
+  }
+
+  const resetThirst = (index) => {
+    let tempCharacters = [...CharacterList];
+    tempCharacters[index].thirst = 0;
+    tempCharacters[index].reset_thirst = totalHours;
+    setCharacterList(tempCharacters);
+  }
+
+  const resetSleep = (index) => {
+    let tempCharacters = [...CharacterList];
+    tempCharacters[index].sleep = 0;
+    tempCharacters[index].reset_sleep = totalHours;
+    setCharacterList(tempCharacters);
+  }
+
+  const handleChangeTime = (event) => {
+    setHoursToPass(parseInt(event.target.value));
   };
 
   const passTime = () => {
-    const updateTime = [...timeState]; 
-    updateTime.push(timeToPass);
-    setTimeState(updateTime); 
+    setTotalHours((prevHours) => parseInt(prevHours)+hoursToPass);
   }
 
+ // Function to update each character's status
+ const updateCharacterStatus = () => {
+  setCharacterList((prevCharacters) =>
+    prevCharacters.map((char) => {
+      const updateLevel = (level, track, cost, name) => {
+        let hoursPassed = totalHours - char['reset_'+name];
+        let newLevel = level;
+        let fatigue = parseInt(char.fatigue);
+      
+        // Iterate through levels until we either run out of hours or reach the last level
+        for (let i = level; i < track.length; i++) {
+          if (hoursPassed >= track[i]) {
+            hoursPassed -= track[i];
+            newLevel = i + 1;
+            fatigue += parseInt(cost[i]);
+          } else {
+            break;
+          }
+        }
+      
+        // If we've reached or surpassed the final level
+        if (newLevel >= track.length) {
+          newLevel = track.length - 1; // Stay at the last level
+      
+          // Continue to apply fatigue for any remaining hours at the last level's interval
+          while (hoursPassed > 0) {
+            hoursPassed -= track[track.length - 1];
+            if (hoursPassed >= 0) {
+              fatigue += parseInt(cost[cost.length - 1]); // Add fatigue for each completed interval at the final level
+            }
+          }
+        }
+        fatigue = parseInt(fatigue);
+        return { newLevel, fatigue };
+      };
+
+      const hungerUpdate = updateLevel(char.hunger, SurvivalData.hunger.track, parseInt(SurvivalData.hunger.cost),'hunger');
+      const thirstUpdate = updateLevel(char.thirst, SurvivalData.thirst.track, parseInt(SurvivalData.thirst.cost),'thirst');
+      const sleepUpdate = updateLevel(char.sleep,   SurvivalData.sleep.track, parseInt(SurvivalData.sleep.cost),'sleep');
+
+      return {
+        ...char,
+        hunger: hungerUpdate.newLevel,
+        thirst: thirstUpdate.newLevel,
+        sleep: sleepUpdate.newLevel,
+        fatigue: parseInt(hungerUpdate.fatigue) + parseInt(thirstUpdate.fatigue) + parseInt(sleepUpdate.fatigue)
+      };
+    })
+  );
+};
+
+  // useEffect to update character status whenever totalHours changes
   useEffect(() => {
-    timeState.forEach(function (time) {
-    
-    });
-  });
+    updateCharacterStatus();
+  }, [totalHours]);
 
   const handleModalClose = () => {
     setShowModal(false);
-  };
+  }
 
   const handleModalOpen = () => {
     setShowModal(true);
-  };
+  }
 
-  const  handleSaveProject = (event) => {
+  const handleSaveProject = (event) => {
     let systemJSON =JSON.stringify(CharacterList);
     const blob = new Blob([systemJSON], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -57,7 +129,7 @@ export default function CharacterList() {
     fathom.trackEvent('Saved Characters for Fallout '+Edition); // eslint-disable-line
   }
 
-const handleLoadProject = (event) => {
+  const handleLoadProject = (event) => {
     const file = event.target.files[0];
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -78,7 +150,6 @@ const handleLoadProject = (event) => {
       }
   }
 
-
   const renderCharacterList = () => {
     let originalList = CharacterList.slice();
     let finalList = [];
@@ -90,24 +161,22 @@ const handleLoadProject = (event) => {
     finalList =[...originalList];
     return finalList;
 
-  };
+  }
 
   const capitalize = (str) =>{
     return str.charAt(0).toUpperCase()+ str.slice(1);
   }
 
-  const [isVisible, setIsVisible] = useState(true);
-
   const toggleHeader = () => {
     setIsVisible(!isVisible);
-  };
+  }
 
   return (
     <>
       <h1>Fallout Character Status Tracker</h1>
       <Container>
         {isVisible && (
-          <Row className='border p-2' id="header">          
+          <Row className='border p-2' id="header" key="CharacterRow">          
               <Button className='saveButton m-1' onClick={handleSaveProject}>Save Order</Button>              
               <Button className='loadButton m-1' onClick={handleModalOpen}  >Load Order</Button>
               <br></br>
@@ -138,7 +207,7 @@ const handleLoadProject = (event) => {
                     let name = document.getElementById('newName').value;
                     setCharacterList([
                       ...CharacterList,
-                      {"id": nextId++, "name": name, }
+                      {"id": nextId++, "name": name, "fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  }
                     ]);
                   }}
                 >
@@ -150,44 +219,69 @@ const handleLoadProject = (event) => {
                   <Card.Body>
                     <Card.Title>{actor.name}</Card.Title>
                     <Card.Text>
-                      <input value={actor.fatigue} style={{width:'100px'}} data-key={actor.id} type="number" />  
-                      <br></br>
-                      <ButtonConfirm onConfirm={onConfirmDel} targetID={actor.id}  title="Delete" query="Are you sure...?"  />
+                     <ButtonConfirm onConfirm={onConfirmDel} targetID={actor.id}  title="Delete" query="Are you sure...?"  />
                     </Card.Text>
                   </Card.Body>
                 </Card>
               ))}
           </Row>
         )}
-            <Row>
+            <Row key="AdvancementRow">
             <div>
               <button className='btn btn-info' onClick={toggleHeader}>
                 {isVisible ? 'Hide Header' : 'Show Header'}
               </button>
-              <h2>Advancements</h2>
-              <div>
-                <label>Time To Pass
-                  <select class="form-select" onChange={handleChangeTime}>
-                    {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,48,72,96,120,144].map(function(time){
-                      return (<option value={time}>{time} Hours</option>)
-                    })}
-                  </select>
-                  <button className="btn btn-primary" onClick={passTime}>Pass Time</button>
-                </label>
+              <h2>Advancement Time</h2>
+              <div style={{"display":"inline-block"}}>
+                <InputGroup className="mb-3">
+                <InputGroup.Text>Time To Pass</InputGroup.Text>
+                  <select className="form-select" onChange={handleChangeTime}>
+                      {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,48,72,96,120,144].map(function(time){
+                        return (<option value={time}>{time} Hours</option>)
+                      })}
+                    </select>
+                </InputGroup>
+                <button className="btn btn-primary" onClick={passTime}>Pass Time</button>
+              </div>
+              <div style={{"display":"inline-block"}}>
+                <InputGroup className="mb-3">
+                  <InputGroup.Text> Hot Weather</InputGroup.Text>
+                  <InputGroup.Checkbox aria-label="Hot Weather" />
+                </InputGroup>
+             
+                <InputGroup className="mb-3">
+                  <InputGroup.Text>Cold Weather</InputGroup.Text>
+                  <InputGroup.Checkbox aria-label="Cold Weather" />
+                </InputGroup>
               </div>
               <hr></hr>
-              <h2>Character Statuses</h2>
+              <h2>Character Statuses - Total Time Passed: ({totalHours})</h2>
               {renderCharacterList(CharacterList).map((character, index) =>{ 
                 return(
                 <Card key={index}>
                   <Card.Body >
-                    <Card.Title style={{"text-align": "left"}}>{character.name}</Card.Title>
+                    <Card.Title style={{"textAlign": "left"}}>{character.name}</Card.Title>
                     <Card.Subtitle className="mb-2 text-muted">Character Status</Card.Subtitle>
-                    <Row>
-                      <Col>Fatigue:{character.fatigue}</Col>
-                      <Col>Hunger:{capitalize(SurvivalData.hunger.names[character.hunger])}</Col>
-                      <Col>Thirst:{capitalize(SurvivalData.thirst.names[character.thirst])}</Col>
-                      <Col>Sleep:{capitalize(SurvivalData.sleep.names[character.sleep])}</Col>
+                    <Row key="ButtonRow">
+                      <Col style={{"textAlign":"left"}}> Fatigue:{character.fatigue}<br></br>
+                      <InputGroup className="mb-3">
+                        <InputGroup.Text>Dysentery</InputGroup.Text>
+                        <InputGroup.Checkbox aria-label="Dysentery" />
+                      </InputGroup>
+                            
+                      </Col>
+                      <Col>Hunger: <span >{capitalize(SurvivalData.hunger.names[character.hunger])}</span> <br></br>
+                        <button className="btn btn-success">Eat</button>
+                        <button className="btn btn-danger" style={{"marginLeft":"10px"}} onClick={ () => { resetHunger(index)} }>Reset Hunger</button>
+                      </Col>
+                      <Col>Thirst: <span >{capitalize(SurvivalData.thirst.names[character.thirst])}</span><br></br>
+                        <button className="btn btn-success">Drink</button>
+                        <button className="btn btn-danger" style={{"marginLeft":"10px"}} onClick={ () => { resetThirst(index)} }>Reset Thirst</button>
+                      </Col>
+                      <Col>Sleep: <span >{capitalize(SurvivalData.sleep.names[character.sleep])}</span><br></br>
+                        <button className="btn btn-success">Sleep</button>
+                        <button className="btn btn-danger" style={{"marginLeft":"10px"}} onClick={ () => { resetSleep(index)} }>Reset Sleep</button>
+                      </Col>
                     </Row>
                   </Card.Body>
                 </Card>
