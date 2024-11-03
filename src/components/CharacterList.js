@@ -15,10 +15,17 @@ export default function CharacterList() {
                       ]; 
   const [CharacterList, setCharacterList] = useState(initialList);
   const [showModal, setShowModal] = useState(false)
+  const [showEatingModal, setShowEatingModal] = useState(false)
+  const [showSleepingModal, setShowSleepingModal] = useState(false)
+  const [eatingTarget,setEatingTarget] = useState(0);
+  const [sleepingTarget,setSleepingTarget] = useState(0);
+  const [sleepingLength,setSleepingLength] = useState(0);
+  const [sourceOfFatigue, setSourceOfFatigue] = useState('');
+  
+
   const [totalHours, setTotalHours] = useState(0); // Track total time elapsed
   const [hoursToPass, setHoursToPass] = useState(1);
   const [isVisible, setIsVisible] = useState(true);
-
 
   const resetHunger = (index) => {
     let tempCharacters = [...CharacterList];
@@ -41,6 +48,69 @@ export default function CharacterList() {
     setCharacterList(tempCharacters);
   }
 
+
+  const handleEatFood = (event) => {
+    let eatWhat = event.target.value;
+    let hungerIncrease = 0;
+    let thirstIncrease = 0;
+    switch(eatWhat){
+      
+      case "food":
+        hungerIncrease = 1;
+      break;
+
+      case "preparedFood":
+        hungerIncrease = 2;
+      break;
+      case "soup":
+        hungerIncrease = 1;
+        thirstIncrease = 1;
+      break;
+      case "preparedSoup":
+        hungerIncrease = 2;
+        thirstIncrease = 1;
+      break;
+
+      default:
+      break;
+
+    }
+    setCharacterList((prevCharacters) => {
+      prevCharacters[eatingTarget].hunger -= hungerIncrease;
+      prevCharacters[eatingTarget].thirst -= thirstIncrease;
+    });
+  }
+
+  const handleSleep = (event) => {
+    
+
+    switch(sleepingLength){
+
+      case 1:
+        
+      break;
+
+      case 6:
+
+      break;
+
+      case 8:
+
+      break;
+
+      default:
+        break;
+    }
+
+    setCharacterList((prevCharacters) => {
+      prevCharacters[eatingTarget].sleep -= sleepIncrease;
+    })
+  }
+
+  const handleChangeSleepTime = (event) => {
+    setSleepingLength(parseInt(event.target.value));
+  }
+
   const handleChangeTime = (event) => {
     setHoursToPass(parseInt(event.target.value));
   };
@@ -56,7 +126,7 @@ export default function CharacterList() {
       const updateLevel = (level, track, cost, name) => {
         let hoursPassed = totalHours - char['reset_'+name];
         let newLevel = level;
-        let fatigue = parseInt(char.fatigue);
+        let fatigue = char.fatigue ?? 0;
       
         // Iterate through levels until we either run out of hours or reach the last level
         for (let i = level; i < track.length; i++) {
@@ -85,9 +155,9 @@ export default function CharacterList() {
         return { newLevel, fatigue };
       };
 
-      const hungerUpdate = updateLevel(char.hunger, SurvivalData.hunger.track, parseInt(SurvivalData.hunger.cost),'hunger');
-      const thirstUpdate = updateLevel(char.thirst, SurvivalData.thirst.track, parseInt(SurvivalData.thirst.cost),'thirst');
-      const sleepUpdate = updateLevel(char.sleep,   SurvivalData.sleep.track, parseInt(SurvivalData.sleep.cost),'sleep');
+      const hungerUpdate = updateLevel(char.hunger, SurvivalData.hunger.track, SurvivalData.hunger.cost,'hunger');
+      const thirstUpdate = updateLevel(char.thirst, SurvivalData.thirst.track, SurvivalData.thirst.cost,'thirst');
+      const sleepUpdate =  updateLevel(char.sleep,  SurvivalData.sleep.track,  SurvivalData.sleep.cost, 'sleep' );
 
       return {
         ...char,
@@ -105,6 +175,8 @@ export default function CharacterList() {
     updateCharacterStatus();
   }, [totalHours]);
 
+  //Modal Controls
+
   const handleModalClose = () => {
     setShowModal(false);
   }
@@ -113,6 +185,24 @@ export default function CharacterList() {
     setShowModal(true);
   }
 
+  const handleEatingModalOpen = (index) => {
+    setShowEatingModal(true);
+    setEatingTarget(index)
+  }
+
+  const handleEatingModalClose = () => {
+    setShowEatingModal(false);
+  }
+
+  const handleSleepingModalOpen = (index) => {
+    setShowSleepingModal(true);
+    setSleepingTarget(index);
+  }
+  
+  const handleSleepingModalClose = () => {
+    setShowSleepingModal(false);
+  }
+  
   const handleSaveProject = (event) => {
     let systemJSON =JSON.stringify(CharacterList);
     const blob = new Blob([systemJSON], { type: 'application/json' });
@@ -180,22 +270,8 @@ export default function CharacterList() {
               <Button className='saveButton m-1' onClick={handleSaveProject}>Save Order</Button>              
               <Button className='loadButton m-1' onClick={handleModalOpen}  >Load Order</Button>
               <br></br>
-              <Modal show={showModal} onHide={handleModalClose}>
-                  <Modal.Header closeButton>
-                      <Modal.Title>Upload Character List</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>
-                      <input type="file" accept=".json" onChange={handleLoadProject} />
-                  </Modal.Body>
-                  <Modal.Footer>
-                      <Button variant="secondary" onClick={handleModalClose}>
-                          Close
-                      </Button>
-                      <Button variant="primary" onClick={handleModalClose}>
-                          Upload
-                      </Button>
-                  </Modal.Footer>
-              </Modal>
+              
+
               <h1>Characters:</h1>
               
               
@@ -226,6 +302,66 @@ export default function CharacterList() {
               ))}
           </Row>
         )}
+        { /* Upload JSON Character List Modal  */ }
+        <Modal show={showModal} onHide={handleModalClose}>
+            <Modal.Header closeButton>
+                <Modal.Title>Upload Character List</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <input type="file" accept=".json" onChange={handleLoadProject} />
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleModalClose}>
+                    Close
+                </Button>
+                <Button variant="primary" onClick={handleModalClose}>
+                    Upload
+                </Button>
+            </Modal.Footer>
+        </Modal>
+
+        { /* Eating Modal  */ }
+        <Modal show={showEatingModal} onHide={handleEatingModalClose}>
+            <Modal.Header closeButton>
+                <Modal.Title>Eat What?</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <button onClick={handleEatFood} className="btn btn-success btn-margin" value="food" >Eat Food</button>
+                <button onClick={handleEatFood} className="btn btn-success btn-margin" value="preparedFood" >Eat Prepared Food</button><br></br>
+                <button onClick={handleEatFood} className="btn btn-success btn-margin" value="soup" >Eat Soup</button>
+                <button onClick={handleEatFood} className="btn btn-success btn-margin" value="preparedSoup" >Eat Prepared Soup</button>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleEatingModalClose}>
+                    Close
+                </Button>
+            </Modal.Footer>
+        </Modal>
+
+        { /* Sleeping Modal  */ }
+        <Modal show={showSleepingModal} onHide={handleSleepingModalClose}>
+            <Modal.Header closeButton>
+                <Modal.Title>Sleep For How Long?</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <InputGroup className="mb-3">
+                <select className="form-select" onChange={handleChangeSleepTime}>
+                  {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24].map(function(time){
+                    return (<option value={time}>{time} Hour(s)</option>)
+                  })}
+                </select>
+                <button className='btn btn-success' onClick={handleSleep}>Sleep</button>
+              </InputGroup>
+                
+                
+                <br></br>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleSleepingModalClose}>
+                    Close
+                </Button>
+            </Modal.Footer>
+        </Modal>
             <Row key="AdvancementRow">
             <div>
               <button className='btn btn-info' onClick={toggleHeader}>
@@ -264,14 +400,13 @@ export default function CharacterList() {
                     <Card.Subtitle className="mb-2 text-muted">Character Status</Card.Subtitle>
                     <Row key="ButtonRow">
                       <Col style={{"textAlign":"left"}}> Fatigue:{character.fatigue}<br></br>
-                      <InputGroup className="mb-3">
-                        <InputGroup.Text>Dysentery</InputGroup.Text>
-                        <InputGroup.Checkbox aria-label="Dysentery" />
-                      </InputGroup>
-                            
+                        <InputGroup className="mb-3">
+                          <InputGroup.Text>Dysentery</InputGroup.Text>
+                          <InputGroup.Checkbox aria-label="Dysentery" />
+                        </InputGroup>
                       </Col>
-                      <Col>Hunger: <span >{capitalize(SurvivalData.hunger.names[character.hunger])}</span> <br></br>
-                        <button className="btn btn-success">Eat</button>
+                      <Col>Hunger: {capitalize(SurvivalData.hunger.names[character.hunger])} <br></br>
+                        <button className="btn btn-success" onClick={ () => { handleEatingModalOpen(index)} }>Eat</button>
                         <button className="btn btn-danger" style={{"marginLeft":"10px"}} onClick={ () => { resetHunger(index)} }>Reset Hunger</button>
                       </Col>
                       <Col>Thirst: <span >{capitalize(SurvivalData.thirst.names[character.thirst])}</span><br></br>
@@ -279,7 +414,7 @@ export default function CharacterList() {
                         <button className="btn btn-danger" style={{"marginLeft":"10px"}} onClick={ () => { resetThirst(index)} }>Reset Thirst</button>
                       </Col>
                       <Col>Sleep: <span >{capitalize(SurvivalData.sleep.names[character.sleep])}</span><br></br>
-                        <button className="btn btn-success">Sleep</button>
+                        <button className="btn btn-success" onClick={() => { handleSleepingModalOpen(index)} }>Sleep</button>
                         <button className="btn btn-danger" style={{"marginLeft":"10px"}} onClick={ () => { resetSleep(index)} }>Reset Sleep</button>
                       </Col>
                     </Row>
