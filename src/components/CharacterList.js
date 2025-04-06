@@ -7,12 +7,7 @@ import SurvivalData from '../data/survivalData.json'
 let nextId = 0;
 
 export default function CharacterList() {
-  const initialList = [
-                        {"name":"Dean", "fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  },
-                        {"name":"Jon",  "fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  },
-                        {"name":"Adam", "fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  },
-                        {"name":"Marty","fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  }
-                      ]; 
+  const initialList = [];  
   const [CharacterList, setCharacterList] = useState(initialList);
   const [showModal, setShowModal] = useState(false)
   const [showEatingModal, setShowEatingModal] = useState(false)
@@ -83,19 +78,21 @@ export default function CharacterList() {
 
   const handleSleep = (event) => {
     
-
+    let sleepingLength = event.target.value;
+    let sleepIncrease = 0;
     switch(sleepingLength){
 
       case 1:
-        
+        sleepIncrease=1
       break;
 
       case 6:
-
+        sleepIncrease=3
       break;
 
       case 8:
-
+        sleepIncrease=3
+        console.log("Would give Well Rested");
       break;
 
       default:
@@ -146,8 +143,15 @@ export default function CharacterList() {
           // Continue to apply fatigue for any remaining hours at the last level's interval
           while (hoursPassed > 0) {
             hoursPassed -= track[track.length - 1];
+          
             if (hoursPassed >= 0) {
-              fatigue += parseInt(cost[cost.length - 1]); // Add fatigue for each completed interval at the final level
+              const finalCost = parseInt(cost[cost.length - 1]);
+          
+              if (!isNaN(finalCost)) {
+                fatigue += finalCost;
+              } else {
+                console.warn(`Invalid final cost:`, cost[cost.length - 1]);
+              }
             }
           }
         }
@@ -236,7 +240,7 @@ export default function CharacterList() {
   const onConfirmDel = (type, param, id) =>
   {
       if(type === 'yes') {
-      setCharacterList(CharacterList.filter((a) => a.id !== id));
+        setCharacterList(CharacterList.filter((a) => a.id !== id));
       }
   }
 
@@ -270,11 +274,7 @@ export default function CharacterList() {
               <Button className='saveButton m-1' onClick={handleSaveProject}>Save Order</Button>              
               <Button className='loadButton m-1' onClick={handleModalOpen}  >Load Order</Button>
               <br></br>
-              
-
               <h1>Characters:</h1>
-              
-              
               <hr />
               <InputGroup className="mb-2">
                 <Form.Control id="newName" />
@@ -291,7 +291,7 @@ export default function CharacterList() {
                 </Button>
               </InputGroup>
               {CharacterList.map((actor) => (
-                <Card style={{ width: '15rem', margin: '2px auto' }} key={actor.id} >
+                <Card style={{ width: '15rem', margin: '2px auto' }} key={actor.id} data-id={actor.id}>
                   <Card.Body>
                     <Card.Title>{actor.name}</Card.Title>
                     <Card.Text>
