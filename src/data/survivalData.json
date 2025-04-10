@@ -1,56 +1,81 @@
 {
-    "hunger":{
-        "track":[1,4,8,16,24],
-        "cost":[0,0,0,1,1],
-        "names":["full","sated","peckish","hungry","starving"],
-        "state":{
-            "full":"You're full if you've eaten your fill. You can't eat any more food while full. ",
-            "sated":"You're sated if you've eaten recently but you've still got room for a bit more.",
-            "peckish":"You're peckish if you're ready for your next meal",
-            "hungry":"You're hungry if your stomach is growling and you're starting to feel a bit weak.",
-            "starving":"You're starving if everything reminds you of food and you're feeling weak and tired"
-        },
-        "effect":{
-            "full":"After an hour of being full, you become sated.",
-            "sated":"After four hours of being sated, you become peckish.",
-            "peckish":"After eight hours of being peckish, you become hungry.",
-            "hungry":"After sixteen hours of being hungry, you gain 1 Fatigue and become starving.",
-            "starving":"For every day you are starving, you gain 1 Fatigue."
-        }
-        
+    "hunger": {
+      "step_track":[1, 4, 8, 16, 24],
+      "track": [2, 5, 14, 30, 54],
+      "cost": [0, 0, 0, 1, 1],
+      "fatigue": [0, 0, 0, 1, 1],
+      "names": ["full", "sated", "peckish", "hungry", "starving"],
+      "state": {
+        "full": "You're full if you've eaten your fill. You can't eat any more food while full.",
+        "sated": "You're sated if you've eaten recently but you've still got room for a bit more.",
+        "peckish": "You're peckish if you're ready for your next meal.",
+        "hungry": "You're hungry if your stomach is growling and you're starting to feel a bit weak.",
+        "starving": "You're starving if everything reminds you of food and you're feeling weak and tired."
+      },
+      "effect": {
+        "full": "After 1 hour of being full, you become sated.",
+        "sated": "After 4 hours of being sated, you become peckish.",
+        "peckish": "After 8 hours of being peckish, you become hungry.",
+        "hungry": "After 16 hours of being hungry, you gain 1 Fatigue and become starving.",
+        "starving": "For every 24 hours you are starving, you gain 1 additional Fatigue."
+      },
+      "recovery": {
+        "full": "You become full by eating a full meal.",
+        "sated": "You become sated by eating a snack or light meal.",
+        "peckish": "You become peckish naturally over time after digestion.",
+        "hungry": "You become hungry after going too long without food.",
+        "starving": "You recover from starving by eating at least one full meal and resting."
+      }
     },
-    "thirst":{
-        "track":[1,2,4,8],
-        "cost":[0,0,1,1],
-        "names":["quenched","hydrated","thirsty","dehydrated"],
-        "state":{
-            "quenched":"You're quenched if you've drunk as much as you can. Drinking more beverages while quenched has no effect on your thirst.",
-            "hydrated":"You're hydrated if you've drunk recently but still could drink more if desired.",
-            "thirsty":"You're thirsty if you've not had anything to drink in a while.",
-            "dehydrated":"If you're dehydrated, you may be getting dizzy, suffering headaches."
-        },
-        "effect":{
-            "quenched":"After an hour of being quenched, you become hydrated.",
-            "hydrated":"After two hours of being sated, you become thirsty.",
-            "thirsty":"After four hours of being thirsty, you gain 1 Fatigue and become dehydrated.",
-            "dehydrated":"Every eight hours you spend dehydrated, gain 1 Fatigue."
-        }
+    "thirst": {
+      "step_track": [1, 2, 4, 8],
+      "track": [2, 3, 8, 17],
+      "cost": [0, 0, 1, 1],
+      "fatigue": [0, 0, 1, 1],
+      "names": ["quenched", "hydrated", "thirsty", "dehydrated"],
+      "state": {
+        "quenched": "You're quenched if you've drunk as much as you can. Drinking more beverages while quenched has no effect.",
+        "hydrated": "You're hydrated if you've drunk recently but could still drink more if desired.",
+        "thirsty": "You're thirsty if you've not had anything to drink in a while.",
+        "dehydrated": "You're dehydrated if you're dizzy, suffering headaches, and feeling sluggish."
+      },
+      "effect": {
+        "quenched": "After 1 hour of being quenched, you become hydrated.",
+        "hydrated": "After 2 hours of being hydrated, you become thirsty.",
+        "thirsty": "After 4 hours of being thirsty, you gain 1 Fatigue and become dehydrated.",
+        "dehydrated": "For every 8 hours you are dehydrated, gain 1 additional Fatigue."
+      },
+      "recovery": {
+        "quenched": "You become quenched by drinking a full container of clean water.",
+        "hydrated": "You become hydrated by sipping from a canteen or similar source.",
+        "thirsty": "You become thirsty naturally over time without water.",
+        "dehydrated": "You recover from dehydration by drinking a large amount of water and resting."
+      }
     },
-    "sleep":{
-        "track":[8,8,8,4],
-        "cost":[0,1,1,1],
-        "names":["rested","tired","weary","exhausted"],
-        "state":{
-            "rested":"After eight hours rested, you become tired.",
-            "tired":"After eight hours tired, you gain 1 Fatigue and become weary.",
-            "weary":"After eight hours weary, you gain 1 Fatigue and become exhausted.",
-            "exhausted":"Every four hours exhausted, you gain 1 Fatigue."
-        },
-        "effect":{
-            "rested":"You're rested if you've recently had a proper sleep.You might be well rested instead if you've had an especially good sleep.",
-            "tired":"You're tired if you're no longer fully alert, but you're still awake.",
-            "weary":"You're weary when you really need some rest, if not some sleep, but are still somewhat able to function.",
-            "exhausted":"You're exhausted if you're on the verge of collapsing, but you're pushing yourself to continue."
-        }
+    "sleep": {
+      "step_track": [8, 8, 8, 4],
+      "track": [9, 17, 26, 31],
+      "cost": [0, 1, 1, 1],
+      "fatigue": [0, 1, 1, 1],
+      "names": ["rested", "tired", "weary", "exhausted"],
+      "state": {
+        "rested": "You're rested if you've recently had a proper sleep. You might be well-rested if it was especially good.",
+        "tired": "You're tired if you're no longer fully alert, but you're still functioning.",
+        "weary": "You're weary when you really need some rest but are still capable of acting.",
+        "exhausted": "You're exhausted if you're on the verge of collapsing, pushing yourself to stay awake."
+      },
+      "effect": {
+        "rested": "After 8 hours of being rested, you become tired.",
+        "tired": "After 8 hours of being tired, you gain 1 Fatigue and become weary.",
+        "weary": "After 8 hours of being weary, you gain 1 Fatigue and become exhausted.",
+        "exhausted": "For every 4 hours you are exhausted, you gain 1 additional Fatigue."
+      },
+      "recovery": {
+        "rested": "You become rested by getting 6-8 hours of uninterrupted sleep.",
+        "tired": "You become tired naturally after being awake for a long time.",
+        "weary": "You become weary by pushing past your usual sleep cycle.",
+        "exhausted": "You recover from exhaustion by sleeping for at least 6 hours and stopping all physical activity."
+      }
     }
-}
+  }
+  

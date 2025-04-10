@@ -7,12 +7,7 @@ import SurvivalData from '../data/survivalData.json'
 let nextId = 0;
 
 export default function CharacterList() {
-  const initialList = [
-                        {"name":"Dean", "fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  },
-                        {"name":"Jon",  "fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  },
-                        {"name":"Adam", "fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  },
-                        {"name":"Marty","fatigue":0,  "hunger":0, "thirst":0, "sleep":0, "reset_hunger":0, "reset_thirst":0, "reset_sleep":0, "dysentery":false  }
-                      ]; 
+  const initialList = [];  
   const [CharacterList, setCharacterList] = useState(initialList);
   const [showModal, setShowModal] = useState(false)
   const [showEatingModal, setShowEatingModal] = useState(false)
@@ -20,7 +15,6 @@ export default function CharacterList() {
   const [eatingTarget,setEatingTarget] = useState(0);
   const [sleepingTarget,setSleepingTarget] = useState(0);
   const [sleepingLength,setSleepingLength] = useState(0);
-  const [sourceOfFatigue, setSourceOfFatigue] = useState('');
   
 
   const [totalHours, setTotalHours] = useState(0); // Track total time elapsed
@@ -75,40 +69,52 @@ export default function CharacterList() {
       break;
 
     }
-    setCharacterList((prevCharacters) => {
-      prevCharacters[eatingTarget].hunger -= hungerIncrease;
-      prevCharacters[eatingTarget].thirst -= thirstIncrease;
-    });
+
+    let tempCharacters = [...CharacterList];
+    if(tempCharacters[eatingTarget].hunger - hungerIncrease < 0){
+      tempCharacters[eatingTarget].hunger = 0;
+      tempCharacters[eatingTarget].reset_hunger = totalHours;
+    }else{
+      tempCharacters[eatingTarget].hunger -= hungerIncrease;
+      tempCharacters[eatingTarget].reset_hunger = (totalHours-SurvivalData.hunger.track[tempCharacters[eatingTarget].hunger]);
+    }
+
+    if(tempCharacters[eatingTarget].thirst - thirstIncrease < 0){
+      tempCharacters[eatingTarget].thirst = 0;
+      tempCharacters[eatingTarget].reset_thirst = totalHours;
+    }else{
+      tempCharacters[eatingTarget].thirst -= thirstIncrease;
+      tempCharacters[eatingTarget].reset_thirst = (totalHours-SurvivalData.thirst.track[tempCharacters[eatingTarget].thirst]);
+    }
+    
+    setCharacterList(tempCharacters);
+    setShowEatingModal(false);
   }
 
   const handleSleep = (event) => {
-    
-
+    let tempCharacters = [...CharacterList];
+    let sleepIncrease = 0;
     switch(sleepingLength){
 
       case 1:
-        
+        sleepIncrease=1
       break;
 
       case 6:
-
+        sleepIncrease=3
       break;
 
       case 8:
-
+        sleepIncrease=3
+        alert(tempCharacters[sleepingTarget].name+" is Well Rested");
       break;
 
       default:
         break;
     }
-
-    setCharacterList((prevCharacters) => {
-      prevCharacters[eatingTarget].sleep -= sleepIncrease;
-    })
-  }
-
-  const handleChangeSleepTime = (event) => {
-    setSleepingLength(parseInt(event.target.value));
+    tempCharacters[sleepingTarget].sleep -= sleepIncrease;
+    tempCharacters[sleepingTarget].reset_sleep = (totalHours-SurvivalData.sleep.track[tempCharacters[sleepingTarget].sleep]);
+    setCharacterList(tempCharacters);
   }
 
   const handleChangeTime = (event) => {
@@ -123,7 +129,8 @@ export default function CharacterList() {
  const updateCharacterStatus = () => {
   setCharacterList((prevCharacters) =>
     prevCharacters.map((char) => {
-      const updateLevel = (level, track, cost, name) => {
+      //const StartingLevels = {"hunger":char.hunger,"thirst":char.thirst,"sleep":char.sleep};
+      const updateLevel = (level, track, name) => {
         let hoursPassed = totalHours - char['reset_'+name];
         let newLevel = level;
         let fatigue = char.fatigue ?? 0;
@@ -133,7 +140,6 @@ export default function CharacterList() {
           if (hoursPassed >= track[i]) {
             hoursPassed -= track[i];
             newLevel = i + 1;
-            fatigue += parseInt(cost[i]);
           } else {
             break;
           }
@@ -142,29 +148,21 @@ export default function CharacterList() {
         // If we've reached or surpassed the final level
         if (newLevel >= track.length) {
           newLevel = track.length - 1; // Stay at the last level
-      
-          // Continue to apply fatigue for any remaining hours at the last level's interval
-          while (hoursPassed > 0) {
-            hoursPassed -= track[track.length - 1];
-            if (hoursPassed >= 0) {
-              fatigue += parseInt(cost[cost.length - 1]); // Add fatigue for each completed interval at the final level
-            }
-          }
         }
-        fatigue = parseInt(fatigue);
+
         return { newLevel, fatigue };
       };
 
-      const hungerUpdate = updateLevel(char.hunger, SurvivalData.hunger.track, SurvivalData.hunger.cost,'hunger');
-      const thirstUpdate = updateLevel(char.thirst, SurvivalData.thirst.track, SurvivalData.thirst.cost,'thirst');
-      const sleepUpdate =  updateLevel(char.sleep,  SurvivalData.sleep.track,  SurvivalData.sleep.cost, 'sleep' );
+      const hungerUpdate = updateLevel(char.hunger, SurvivalData.hunger.track, 'hunger');
+      const thirstUpdate = updateLevel(char.thirst, SurvivalData.thirst.track, 'thirst');
+      const sleepUpdate =  updateLevel(char.sleep,  SurvivalData.sleep.track,  'sleep' );
 
       return {
         ...char,
         hunger: hungerUpdate.newLevel,
         thirst: thirstUpdate.newLevel,
         sleep: sleepUpdate.newLevel,
-        fatigue: parseInt(hungerUpdate.fatigue) + parseInt(thirstUpdate.fatigue) + parseInt(sleepUpdate.fatigue)
+        fatigue: 0
       };
     })
   );
@@ -216,7 +214,7 @@ export default function CharacterList() {
   
     // Clean up by revoking the object URL
     URL.revokeObjectURL(url);
-    fathom.trackEvent('Saved Characters for Fallout '+Edition); // eslint-disable-line
+    fathom.trackEvent('Saved Characters for Fallout Status Tracker'); // eslint-disable-line
   }
 
   const handleLoadProject = (event) => {
@@ -236,7 +234,7 @@ export default function CharacterList() {
   const onConfirmDel = (type, param, id) =>
   {
       if(type === 'yes') {
-      setCharacterList(CharacterList.filter((a) => a.id !== id));
+        setCharacterList(CharacterList.filter((a) => a.id !== id));
       }
   }
 
@@ -270,11 +268,7 @@ export default function CharacterList() {
               <Button className='saveButton m-1' onClick={handleSaveProject}>Save Order</Button>              
               <Button className='loadButton m-1' onClick={handleModalOpen}  >Load Order</Button>
               <br></br>
-              
-
               <h1>Characters:</h1>
-              
-              
               <hr />
               <InputGroup className="mb-2">
                 <Form.Control id="newName" />
@@ -291,7 +285,7 @@ export default function CharacterList() {
                 </Button>
               </InputGroup>
               {CharacterList.map((actor) => (
-                <Card style={{ width: '15rem', margin: '2px auto' }} key={actor.id} >
+                <Card style={{ width: '15rem', margin: '2px auto' }} key={actor.id} data-id={actor.id}>
                   <Card.Body>
                     <Card.Title>{actor.name}</Card.Title>
                     <Card.Text>
@@ -345,8 +339,11 @@ export default function CharacterList() {
             </Modal.Header>
             <Modal.Body>
               <InputGroup className="mb-3">
-                <select className="form-select" onChange={handleChangeSleepTime}>
-                  {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24].map(function(time){
+                <select 
+                className="form-select" 
+                onChange={e => setSleepingLength(e.target.value)} 
+                value={sleepingLength}>
+                  {[1,6,8].map(function(time){
                     return (<option value={time}>{time} Hour(s)</option>)
                   })}
                 </select>
