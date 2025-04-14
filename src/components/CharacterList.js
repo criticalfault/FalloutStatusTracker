@@ -11,12 +11,14 @@ export default function CharacterList() {
   const [CharacterList, setCharacterList] = useState(initialList);
   const [showModal, setShowModal] = useState(false)
   const [showEatingModal, setShowEatingModal] = useState(false)
+  const [showDrinkingModal, setShowDrinkingModal] = useState(false)
   const [showSleepingModal, setShowSleepingModal] = useState(false)
   const [eatingTarget,setEatingTarget] = useState(0);
+  const [drinkingTarget,setDrinkingTarget] = useState(0);
   const [sleepingTarget,setSleepingTarget] = useState(0);
   const [sleepingLength,setSleepingLength] = useState(0);
-  
-
+  const [coldWeather, setColdWeather] = useState(0);
+  const [hotWeather, setHotWeather] = useState(0);
   const [totalHours, setTotalHours] = useState(0); // Track total time elapsed
   const [hoursToPass, setHoursToPass] = useState(1);
   const [isVisible, setIsVisible] = useState(true);
@@ -40,6 +42,38 @@ export default function CharacterList() {
     tempCharacters[index].sleep = 0;
     tempCharacters[index].reset_sleep = totalHours;
     setCharacterList(tempCharacters);
+  }
+
+  const handleDrinkDrink = (event) => {
+    let drinkWhat = event.target.value;
+    let thirstIncrease = 0;
+    switch(drinkWhat){
+      
+      case "dirtyWater":
+        thirstIncrease = 1;
+      break;
+
+      case "cleanWater":
+        thirstIncrease = 2;
+      break;
+     
+      default:
+      break;
+
+    }
+
+    let tempCharacters = [...CharacterList];
+
+    if(tempCharacters[drinkingTarget].thirst - thirstIncrease < 0){
+      tempCharacters[drinkingTarget].thirst = 0;
+      tempCharacters[drinkingTarget].reset_thirst = totalHours;
+    }else{
+      tempCharacters[drinkingTarget].thirst -= thirstIncrease;
+      tempCharacters[drinkingTarget].reset_thirst = (totalHours-SurvivalData.thirst.track[tempCharacters[drinkingTarget].thirst]);
+    }
+    
+    setCharacterList(tempCharacters);
+    setShowDrinkingModal(false);
   }
 
 
@@ -125,6 +159,16 @@ export default function CharacterList() {
     setTotalHours((prevHours) => parseInt(prevHours)+hoursToPass);
   }
 
+  //Modifiers for Update Character Status
+
+  const handleCheckHotWeather = (event) => {
+    setHotWeather(prev => (prev === 1 ? 0 : 1)); // toggle between 1 and 0
+  }
+
+  const handleCheckColdWeather = (event) => {
+    setColdWeather(prev => (prev === 1 ? 0 : 1)); // toggle between 1 and 0
+  }
+
  // Function to update each character's status
  const updateCharacterStatus = () => {
   setCharacterList((prevCharacters) =>
@@ -136,6 +180,13 @@ export default function CharacterList() {
         let fatigue = char.fatigue ?? 0;
       
         // Iterate through levels until we either run out of hours or reach the last level
+        if(track === 'hunger' && coldWeather === 1){
+          hoursPassed += hoursPassed;
+        }
+        if(track === 'thirst' && hotWeather === 1){
+          hoursPassed += hoursPassed;
+        }
+
         for (let i = level; i < track.length; i++) {
           if (hoursPassed >= track[i]) {
             hoursPassed -= track[i];
@@ -191,6 +242,16 @@ export default function CharacterList() {
   const handleEatingModalClose = () => {
     setShowEatingModal(false);
   }
+
+  const handleDrinkingModalOpen = (index) => {
+    setShowDrinkingModal(true);
+    setDrinkingTarget(index)
+  }
+
+  const handleDrinkingModalClose = () => {
+    setShowDrinkingModal(false);
+  }
+
 
   const handleSleepingModalOpen = (index) => {
     setShowSleepingModal(true);
@@ -332,6 +393,21 @@ export default function CharacterList() {
             </Modal.Footer>
         </Modal>
 
+        { /* Drinking Modal  */ }
+        <Modal show={showDrinkingModal} onHide={handleDrinkingModalClose}>
+            <Modal.Header closeButton>
+                <Modal.Title>Drink What?</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <button onClick={handleDrinkDrink} className="btn btn-success btn-margin" value="dirtyWater" >Drink Dirty Water</button>
+                <button onClick={handleDrinkDrink} className="btn btn-success btn-margin" value="cleanWater" >Drink Clean Water</button><br></br>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleDrinkingModalClose}>
+                    Close
+                </Button>
+            </Modal.Footer>
+        </Modal>
         { /* Sleeping Modal  */ }
         <Modal show={showSleepingModal} onHide={handleSleepingModalClose}>
             <Modal.Header closeButton>
@@ -359,13 +435,14 @@ export default function CharacterList() {
                 </Button>
             </Modal.Footer>
         </Modal>
-            <Row key="AdvancementRow">
-            <div>
+            <Row key="AdvancementRow" className='gx-5'>
+            <Col md={12}>
               <button className='btn btn-info' onClick={toggleHeader}>
                 {isVisible ? 'Hide Header' : 'Show Header'}
               </button>
               <h2>Advancement Time</h2>
-              <div style={{"display":"inline-block"}}>
+            </Col>
+              <Col className='md=6'>
                 <InputGroup className="mb-3">
                 <InputGroup.Text>Time To Pass</InputGroup.Text>
                   <select className="form-select" onChange={handleChangeTime}>
@@ -375,18 +452,20 @@ export default function CharacterList() {
                     </select>
                 </InputGroup>
                 <button className="btn btn-primary" onClick={passTime}>Pass Time</button>
-              </div>
-              <div style={{"display":"inline-block"}}>
+              </Col>
+              <Col className='md=6'>
                 <InputGroup className="mb-3">
-                  <InputGroup.Text> Hot Weather</InputGroup.Text>
-                  <InputGroup.Checkbox aria-label="Hot Weather" />
+                  <InputGroup.Text>Hot Weather</InputGroup.Text>
+                  <InputGroup.Checkbox aria-label="Hot Weather"  checked={hotWeather === 1} onChange={handleCheckHotWeather}/>
                 </InputGroup>
              
                 <InputGroup className="mb-3">
                   <InputGroup.Text>Cold Weather</InputGroup.Text>
-                  <InputGroup.Checkbox aria-label="Cold Weather" />
+                  <InputGroup.Checkbox aria-label="Cold Weather"checked={coldWeather === 1}  onChange={handleCheckColdWeather}/>
                 </InputGroup>
-              </div>
+              </Col>
+              
+              <Col md={12}>
               <hr></hr>
               <h2>Character Statuses - Total Time Passed: ({totalHours})</h2>
               {renderCharacterList(CharacterList).map((character, index) =>{ 
@@ -396,18 +475,18 @@ export default function CharacterList() {
                     <Card.Title style={{"textAlign": "left"}}>{character.name}</Card.Title>
                     <Card.Subtitle className="mb-2 text-muted">Character Status</Card.Subtitle>
                     <Row key="ButtonRow">
-                      <Col style={{"textAlign":"left"}}> Fatigue:{character.fatigue}<br></br>
-                        <InputGroup className="mb-3">
+                      <Col style={{"textAlign":"left"}}> Fatigue: Coming Soon<br></br>
+                        {/* <InputGroup className="mb-3">
                           <InputGroup.Text>Dysentery</InputGroup.Text>
                           <InputGroup.Checkbox aria-label="Dysentery" />
-                        </InputGroup>
+                        </InputGroup> */}
                       </Col>
-                      <Col>Hunger: {capitalize(SurvivalData.hunger.names[character.hunger])} <br></br>
+                      <Col>Hunger: {capitalize(SurvivalData.hunger.names[character.hunger])} () <br></br>
                         <button className="btn btn-success" onClick={ () => { handleEatingModalOpen(index)} }>Eat</button>
                         <button className="btn btn-danger" style={{"marginLeft":"10px"}} onClick={ () => { resetHunger(index)} }>Reset Hunger</button>
                       </Col>
                       <Col>Thirst: <span >{capitalize(SurvivalData.thirst.names[character.thirst])}</span><br></br>
-                        <button className="btn btn-success">Drink</button>
+                        <button className="btn btn-success"  onClick={ () => { handleDrinkingModalOpen(index)} }>Drink</button>
                         <button className="btn btn-danger" style={{"marginLeft":"10px"}} onClick={ () => { resetThirst(index)} }>Reset Thirst</button>
                       </Col>
                       <Col>Sleep: <span >{capitalize(SurvivalData.sleep.names[character.sleep])}</span><br></br>
@@ -418,7 +497,7 @@ export default function CharacterList() {
                   </Card.Body>
                 </Card>
               )})}
-            </div>
+            </Col>
         </Row>
       </Container>
     </>
