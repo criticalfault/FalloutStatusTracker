@@ -130,15 +130,15 @@ export default function CharacterList() {
     let sleepIncrease = 0;
     switch(sleepingLength){
 
-      case 1:
+      case "1":
         sleepIncrease=1
       break;
 
-      case 6:
+      case "6":
         sleepIncrease=3
       break;
 
-      case 8:
+      case "8":
         sleepIncrease=3
         alert(tempCharacters[sleepingTarget].name+" is Well Rested");
       break;
@@ -147,8 +147,15 @@ export default function CharacterList() {
         break;
     }
     tempCharacters[sleepingTarget].sleep -= sleepIncrease;
+    if(tempCharacters[sleepingTarget].sleep < 0){
+      tempCharacters[sleepingTarget].sleep = 0;
+    }
     tempCharacters[sleepingTarget].reset_sleep = (totalHours-SurvivalData.sleep.track[tempCharacters[sleepingTarget].sleep]);
+    if(tempCharacters[sleepingTarget].reset_sleep < 0){
+      tempCharacters[sleepingTarget].reset_sleep = 0;
+    }
     setCharacterList(tempCharacters);
+    setShowSleepingModal(false);
   }
 
   const handleChangeTime = (event) => {
