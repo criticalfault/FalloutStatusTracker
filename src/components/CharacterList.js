@@ -282,7 +282,6 @@ export default function CharacterList() {
   
     // Clean up by revoking the object URL
     URL.revokeObjectURL(url);
-    fathom.trackEvent('Saved Characters for Fallout Status Tracker'); // eslint-disable-line
   }
 
   const handleLoadProject = (event) => {
@@ -294,8 +293,7 @@ export default function CharacterList() {
         setCharacterList(inits);
         nextId = inits.length;
         setShowModal(false);
-        fathom.trackEvent('Loaded Characters for Fallout'); // eslint-disable-line
-    }    
+    }
     reader.readAsText(file); 
   }
 
